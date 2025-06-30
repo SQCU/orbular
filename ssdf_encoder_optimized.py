@@ -1,3 +1,4 @@
+# gemini-2.5 first pass code, under review
 """
 ssdf_encoder_optimized.py
 
@@ -78,13 +79,14 @@ def dist_grid_to_arc_vectorized(grid_cart_flat, arc_start_cart, arc_end_cart):
     return np.where(on_arc_condition, dist_to_gc, dist_to_endpoints)
 
 
-def encode_to_sdf_and_mask_optimized(stroke_geometries, grid_size=128, stroke_thickness_rad=0.02):
+def encode_to_sdf_and_mask_optimized(stroke_geometries, grid_shape, stroke_thickness_rad=0.02):
     """
     Generates the binary mask and the ground truth S-SDF from stroke geometries
     using an optimized, vectorized approach.
     """
-    theta = np.linspace(0, np.pi, grid_size)
-    phi = np.linspace(0, 2 * np.pi, grid_size)
+    grid_size_theta, grid_size_phi = grid_shape
+    theta = np.linspace(0, np.pi, grid_size_theta)
+    phi = np.linspace(0, 2 * np.pi, grid_size_phi)
     theta_grid, phi_grid = np.meshgrid(theta, phi)
     
     grid_cart_flat = geom.spherical_to_cartesian(theta_grid.ravel(), phi_grid.ravel())
@@ -93,7 +95,7 @@ def encode_to_sdf_and_mask_optimized(stroke_geometries, grid_size=128, stroke_th
     sdf_flat = np.full(grid_cart_flat.shape[0], np.inf)
     
     if not stroke_geometries:
-        sdf_grid = sdf_flat.reshape((grid_size, grid_size)).T
+        sdf_grid = sdf_flat.reshape((grid_size_theta, grid_size_phi)).T
         mask_grid = np.zeros_like(sdf_grid)
         return mask_grid, sdf_grid
 
@@ -103,7 +105,7 @@ def encode_to_sdf_and_mask_optimized(stroke_geometries, grid_size=128, stroke_th
         # Update the SDF with the minimum distance found so far
         sdf_flat = np.minimum(sdf_flat, dist_to_arc)
         
-    sdf_grid = sdf_flat.reshape((grid_size, grid_size)).T
+    sdf_grid = sdf_flat.reshape((grid_size_theta, grid_size_phi))
     mask_grid = (sdf_grid < stroke_thickness_rad).astype(np.float32)
     
     return mask_grid, sdf_grid
