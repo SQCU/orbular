@@ -125,21 +125,29 @@ def dist_point_to_arc(p_cart, arc_start_cart, arc_end_cart):
         return great_circle_distance(p_cart, arc_start_cart)
     arc_plane_normal /= norm
 
-    # Project the point onto the arc's plane
-    p_proj_on_plane = p_cart - np.dot(p_cart, arc_plane_normal) * arc_plane_normal
-    
-    # The point might be on the opposite side of the sphere, so we find the intersection
-    # with the great circle, but this is complex. A simpler way:
     # Check if the closest point on the great circle lies within the arc segment.
-    
-    # Vector rejection of start and end from point gives direction to closest point on GC
-    v_start = arc_start_cart - np.dot(arc_start_cart, p_cart) * p_cart
-    v_end = arc_end_cart - np.dot(arc_end_cart, p_cart) * p_cart
-    
-    # If the rejection vectors point in opposite directions, the point is between them
-    if np.dot(v_start, v_end) < 0:
+    arc_length = great_circle_distance(arc_start_cart, arc_end_cart)
+    dist_to_start = great_circle_distance(p_cart, arc_start_cart)
+    dist_to_end = great_circle_distance(p_cart, arc_end_cart)
+
+    # A more robust check for being "between" the endpoints on the great circle
+    if dist_to_start > arc_length and dist_to_end > arc_length:
+         # This condition is tricky. A better way is to check if the projection is on the arc.
+         # Project point onto the great circle
+        p_proj = p_cart - np.dot(p_cart, arc_plane_normal) * arc_plane_normal
+        p_proj /= np.linalg.norm(p_proj)
+        
+        # Check if the projection lies on the arc
+        # This is true if the sum of distances from projection to endpoints is close to arc length
+        on_arc = np.isclose(great_circle_distance(arc_start_cart, p_proj) + great_circle_distance(arc_end_cart, p_proj), arc_length)
+
+    else:
+        on_arc = True # If one of the distances is less than the arc length, it must be on the arc side.
+
+
+    if on_arc:
         # Distance to the great circle itself
         return np.abs(np.pi / 2 - great_circle_distance(p_cart, arc_plane_normal))
     else:
         # Closest point is one of the endpoints
-        return min(great_circle_distance(p_cart, arc_start_cart), great_circle_distance(p_cart, arc_end_cart))
+        return min(dist_to_start, dist_to_end)
