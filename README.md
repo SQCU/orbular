@@ -75,3 +75,18 @@ The entry point for this feature is `run_model_demo.py`. Here is the high-level 
     *   `ssdf_loss.mean_squared_error_sdf()`: Calculates the loss between the upsampled model output and the target.
     *   `matplotlib.pyplot`: Plots the input, target, raw model output, and the final error surface.
 
+### Spherical Attention Demo
+
+This feature demonstrates the `SphericalMultiHeadAttention` layer.
+
+#### Sourcemap
+
+The entry point for this feature is `run_sphereattn_demo.py`. Here is the high-level call graph:
+
+1.  **`run_sphereattn_demo.main()`** - Orchestrates the data generation, model execution, and visualization.
+    *   Calls `generate_sdf_for_path()` to generate the target S-SDF.
+    *   Instantiates the `SphericalMultiHeadAttention` model from `spherical_attention.py`.
+    *   Performs the forward pass: `model(random_input_lm)`.
+    *   `ssdf_loss.mean_squared_error_sdf()`: Calculates the loss between the model output and the target.
+    *   `matplotlib.pyplot`: Plots the target, prediction, and loss in both the SDF and spherical texture domains.
+
