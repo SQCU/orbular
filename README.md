@@ -47,3 +47,31 @@ The primary entry point for this feature is `loss_visualization_demo_optimized.p
     *   `ssdf_loss.mean_squared_error_sdf()`: Calculates the scalar loss and the plottable error surface between the two generated SDFs.
     *   `ssdf_decoder.decode_sdf_to_texture()`: Converts the SDFs back into binary images for visualization.
     *   `matplotlib.pyplot`: Used to plot the final comparison of the textures and the error surface.
+
+### Spherical CNN Demo
+
+This feature demonstrates a complete end-to-end test of the S-SDF pipeline with a minimal, randomly initialized Spherical CNN.
+
+#### Sourcemap
+
+The entry point for this feature is `run_model_demo.py`. Here is the high-level call graph:
+
+1.  **`run_model_demo.main()`** - Orchestrates the data generation, model execution, and visualization.
+    *   Calls `ssdf_encoder_optimized.encode_to_sdf_and_mask_optimized()` to generate the input mask and target S-SDF.
+    *   Instantiates the `SimpleSphericalCNN` model from `spherical_cnn.py`.
+    *   Calls `torch.from_numpy()` to convert the data into PyTorch tensors.
+    *   Performs the forward pass: `model(input_tensor)`.
+
+2.  **`spherical_cnn.SimpleSphericalCNN.forward()`** - The model's forward pass.
+    *   `nn.Conv2d` (Embedder): Lifts the input from 1 to `intermediate_channels`.
+    *   `spherical_cnn.SphericalConv2d.forward()`: Called three times in sequence.
+        *   `s2fft.forward()`: Transforms the input tensor from the spatial to the harmonic domain (iterating over channels).
+        *   `torch.einsum()`: Performs the convolution by multiplying the input and weights in the harmonic domain.
+        *   `s2fft.inverse()`: Transforms the result back to the spatial domain (iterating over channels).
+    *   `nn.Conv2d` (Unembedder): Projects the features back to a single-channel output.
+
+3.  **Back in `run_model_demo.main()`**:
+    *   `torch.nn.functional.interpolate()`: Upsamples the model's output to match the target's resolution.
+    *   `ssdf_loss.mean_squared_error_sdf()`: Calculates the loss between the upsampled model output and the target.
+    *   `matplotlib.pyplot`: Plots the input, target, raw model output, and the final error surface.
+
