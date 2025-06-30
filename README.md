@@ -92,3 +92,25 @@ The entry point for this feature is `run_sphereattn_demo.py`. Here is the high-l
 
 ![Spherical Attention Demo Output](sphereattn_demo_output.png)
 
+### S0-S2 Loss Demo
+
+This feature demonstrates the generation of spin-0 (S-SDF) and spin-2 (strain) fields, and the calculation of loss between an original and a perturbed version.
+
+#### Sourcemap
+
+The entry point for this feature is `s0_s2_pipeline.py`. Here is the high-level call graph:
+
+1.  **`s0_s2_pipeline.main()`** - Orchestrates the entire process.
+    *   Calls `synthesize_fields()` to generate the original S0 and S2 fields.
+    *   Calls `create_perturbed_fields()` to generate the rotated S0 and S2 fields.
+    *   Calls `ssdf_loss.mean_squared_error_sdf()` to calculate the loss between the original and perturbed fields.
+    *   Calls `plot_loss_fields()` to visualize the loss.
+    *   Calls `plot_reconstruction()` to create 3D visualizations of the original and loss fields.
+
+## Sanity Magnitude
+
+The `sanity_magnitude` parameter is used in `s0_s2_pipeline.py` and `ssdf_encoder_optimized.py` to control the level of error checking.
+
+*   `sanity_magnitude = 0`: No checks are performed. This is the most performant option, but may produce unexpected results if the input data is not well-formed.
+*   `sanity_magnitude = 1`: Basic checks are performed, such as checking for zero vectors. This is the default setting and is recommended for most use cases.
+

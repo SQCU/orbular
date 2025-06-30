@@ -74,6 +74,11 @@ def slerp(p1_cart, p2_cart, t):
     if np.isclose(omega, 0):
         return p1_cart
     
+    # Handle the case of diametrically opposite points
+    if np.isclose(omega, np.pi):
+        # Return an arbitrary orthogonal vector
+        return np.cross(p1_cart, get_orthonormal_vectors(p1_cart)[0])
+
     sin_omega = np.sin(omega)
     term1 = np.sin((1 - t) * omega) / sin_omega
     term2 = np.sin(t * omega) / sin_omega
@@ -100,10 +105,18 @@ def get_orthonormal_vectors(p_cart):
         v_aux = np.array([0.0, 1.0, 0.0])
         
     tangent1 = np.cross(p_cart, v_aux)
-    tangent1 /= np.linalg.norm(tangent1)
+    norm = np.linalg.norm(tangent1)
+    if np.isclose(norm, 0):
+        tangent1 = np.array([0.0, 0.0, 0.0]) # Or handle as an error
+    else:
+        tangent1 /= norm
     
     tangent2 = np.cross(p_cart, tangent1)
-    tangent2 /= np.linalg.norm(tangent2)
+    norm = np.linalg.norm(tangent2)
+    if np.isclose(norm, 0):
+        tangent2 = np.array([0.0, 0.0, 0.0])
+    else:
+        tangent2 /= norm
     
     return tangent1, tangent2
 

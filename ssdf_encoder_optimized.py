@@ -12,7 +12,7 @@ import tqdm
 import ssdf_font
 import ssdf_geometry as geom
 
-def generate_stroke_geometries(text, path_func, type_size_rad=0.2):
+def generate_stroke_geometries(text, path_func, type_size_rad=0.2, sanity_magnitude=1):
     """
     Maps a string of text along a spherical path and generates the 3D stroke geometries.
     (This function is identical to the one in the original encoder but is included
@@ -29,11 +29,18 @@ def generate_stroke_geometries(text, path_func, type_size_rad=0.2):
 
         t_center = (i + 0.5) / num_letters
         letter_center_cart = path_func(t_center)
+
+        if sanity_magnitude > 0:
+            norm = np.linalg.norm(letter_center_cart)
+            if np.isclose(norm, 0):
+                print(f"Warning: letter_center_cart for char '{char}' at t={t_center} is a zero vector. Skipping.")
+                continue
+        
         u_vec, v_vec = geom.get_orthonormal_vectors(letter_center_cart)
 
-        for p1_2d, p2_2d in ssdf_font.VECTOR_FONT[char.upper()]:
+        for p1_2d, p2_d in ssdf_font.VECTOR_FONT[char.upper()]:
             stroke_start_cart = letter_center_cart + (p1_2d[0] * u_vec + p1_2d[1] * v_vec) * (type_size_rad / 2)
-            stroke_end_cart = letter_center_cart + (p2_2d[0] * u_vec + p2_2d[1] * v_vec) * (type_size_rad / 2)
+            stroke_end_cart = letter_center_cart + (p2_d[0] * u_vec + p2_d[1] * v_vec) * (type_size_rad / 2)
             
             stroke_start_cart /= np.linalg.norm(stroke_start_cart)
             stroke_end_cart /= np.linalg.norm(stroke_end_cart)
