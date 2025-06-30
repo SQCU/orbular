@@ -90,3 +90,5 @@ The entry point for this feature is `run_sphereattn_demo.py`. Here is the high-l
     *   `ssdf_loss.mean_squared_error_sdf()`: Calculates the loss between the model output and the target.
     *   `matplotlib.pyplot`: Plots the target, prediction, and loss in both the SDF and spherical texture domains.
 
+![Spherical Attention Demo Output](sphereattn_demo_output.png)
+
